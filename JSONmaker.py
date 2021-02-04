@@ -9,16 +9,16 @@ from pathlib import Path
 # food_dictionary is a dictionary of foods and their calories
 food_journal = {}
 food_cal = {}
+#TODO: Address the global versus local copies (between main and JSONmaker.py)
 
 
 # Reads in the Json files and turn them into arrays/dictionaries to be used
 def initialize_data():
-    global food_journal
-    global food_cal
     if Path('food_journal.json').is_file():
         food_journal = read_json('food_journal')
     else:
         write_json('food_journal', {})
+
     if Path('food_cal.json').is_file():
         food_cal = read_json('food_cal')
     else:
@@ -35,7 +35,8 @@ def add_food(food, date, time, calorie):
             'time': time,
             'calories': calorie}
         food_journal[date].append(temp_food_dict)
-
+    return food_journal
+#TODO: Add the proper return value
 
 # Function to add any food from the food_journal to a dictionary of food and their calories
 def add_food_cal(food, calorie):
