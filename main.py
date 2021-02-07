@@ -40,7 +40,7 @@ class StartPage:
         self.button_frames.pack()
 
         #Button that when pressed creates and opens a new class/window 
-        self.btn_display = tk.Button(self.button_frames, text = 'New Window', width = 20, bg = 'lightblue', command = self.display_data)
+        self.btn_display = tk.Button(self.button_frames, text = 'Display Journal', width = 20, bg = 'lightblue', command = self.display_data)
         self.btn_display.pack()
 
         self.btn_submit = tk.Button(self.button_frames, text="Submit", width = 10, command = self.submit_entry) #in case its needed (command=lambda : self.submit_entry(entry_date.get(), entry_time.get(), entry_food.get(), entry_calories.get())
@@ -88,9 +88,20 @@ class JournalWindow:
         
         self.frame.pack()
 
-    def show_data():
-        #Something with Json
-        return()
+    def show_data(self):
+        data = jm.read_json("Example") #Example being the json file name
+        self.txt_box = tk.Text(self.master)
+        self.txt_box.pack()
+
+        for key, value in data.items():
+            self.txt_box.insert(tk.END, key + "\n", ("key_date", 0, tk.END))
+            self.txt_box.tag_configure("key_date", foreground = "red", font = " TkFixedFont")
+            # Perhaps use Enumerate?
+            for element in value:
+                #Change Name, Time, and Calories color/font/size
+                self.txt_box.insert(tk.END, "Name: " + element["name"] + "\n", ("next_line", 0, tk.END))
+                self.txt_box.insert(tk.END, "Time: " + element["time"] + "\n", ("next_line", 0, tk.END))
+                self.txt_box.insert(tk.END, "Calories: " + str(element["calories"]) + "\n", ("next_line", 0, tk.END))
     
     def close_windows(self):
         self.master.destroy()
