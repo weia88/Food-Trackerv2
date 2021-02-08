@@ -19,10 +19,8 @@ def initialize_data():
     global food_journal
     if Path('food_journal.json').is_file():
         read_json('food_journal')
-        print(food_journal)
     else:
         write_json('food_journal', {})
-        print('not read')
 
     # if Path('cal_dictionary.json').is_file():
     #     cal_dictionary = read_json('cal_dictionary')

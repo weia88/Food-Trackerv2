@@ -1,16 +1,12 @@
-# Creates the application window
+#TODO: Need to restructure python comments to follow python guidelines and docstrings
 import JSONmaker as jm
 import tkinter as tk
-# food_journal is an array containing the food journal entries
-# food_dictionary is a dictionary of foods and their calories
-food_journal = {}
-food_cal = {}
-#TODO: Address the global versus local copies (between main and JSONmaker.py)
-
 
 #Code review on param --> Self and master usage
 class StartPage:
     def __init__(self, master):
+        jm.initialize_data()
+        
         self.master = master
         self.master.title('Food Journal Home Page')
         self.main_frame = tk.Frame(self.master)
@@ -59,12 +55,9 @@ class StartPage:
         self.entry_food.delete(0, tk.END)
         self.entry_calories.delete(0, tk.END)
 
-    # Non Operational right now
     def submit_entry(self): #coressponding to comment about lamda --> add params date, time, food, calories
-        jm.initialize_data()
-        temp = jm.add_food(self.entry_date.get(), self.entry_time.get(), self.entry_food.get(), self.entry_calories.get())
-        print(temp)
-        jm.write_json('food_journal', food_journal)
+        jm.add_food(self.entry_date.get(), self.entry_time.get(), self.entry_food.get(), 
+                self.entry_calories.get())
         self.clear_entry()
 
     def display_data(self):
@@ -74,26 +67,42 @@ class StartPage:
     def close_windows(self):
         self.master.destroy()
 
+#Class: Window that allows displaying and minor manipulation of Journal Entry content
 class JournalWindow:
     def __init__(self, master):
         self.master = master
         self.master.title('Displaying Journal')
         self.frame = tk.Frame(self.master)
+        self.frame.pack(side = tk.TOP)
 
-        self.btn_show = tk.Button(self.frame, text = 'Show', width = 25, command = self.show_data)
-        self.btn_show.pack()
+        journal_data = jm.read_json("food_journal") #Example being the json file name
+
+        self.btn_show = tk.Button(self.frame, text = 'Show', width = 25, command = lambda: self.show_data(journal_data))
+        self.btn_show.pack(side=tk.RIGHT)
         
-        self.btn_quit = tk.Button(self.frame, text = 'Quit', width = 25, command = self.close_windows)
-        self.btn_quit.pack()
-        
-        self.frame.pack()
+        self.btn_filter = tk.Button(self.frame, text = ' Filter By', width = 25, 
+                command = lambda: self.filter_by_date(journal_data))
+        self.btn_filter.pack(side=tk.RIGHT)
 
-    def show_data(self):
-        data = jm.read_json("Example") #Example being the json file name
-        self.txt_box = tk.Text(self.master)
-        self.txt_box.pack()
+        self.btn_close = tk.Button(self.frame, text = 'Close', width = 25, command = self.close_windows)
+        self.btn_close.pack(side=tk.RIGHT)
 
-        for key, value in data.items():
+        self.filter_frame = tk.Frame(self.master)
+        self.filter_frame.pack(side = tk.LEFT)
+
+        label_time = tk.Label(self.filter_frame, text="Date to Filter by", fg="red")
+        label_time.pack(side = tk.TOP)
+        self.entry_filter = tk.Entry(self.filter_frame)
+        self.entry_filter.pack(side = tk.BOTTOM)
+
+    #Displays entire Journal Entry content
+    def show_data(self, journal_data):
+        self.frame3 = tk.Frame(self.master)
+        self.frame3.pack()
+
+        self.txt_box = tk.Text(self.frame3)
+
+        for key, value in journal_data.items():
             self.txt_box.insert(tk.END, key + "\n", ("key_date", 0, tk.END))
             self.txt_box.tag_configure("key_date", foreground = "red", font = " TkFixedFont")
             # Perhaps use Enumerate?
@@ -102,6 +111,44 @@ class JournalWindow:
                 self.txt_box.insert(tk.END, "Name: " + element["name"] + "\n", ("next_line", 0, tk.END))
                 self.txt_box.insert(tk.END, "Time: " + element["time"] + "\n", ("next_line", 0, tk.END))
                 self.txt_box.insert(tk.END, "Calories: " + str(element["calories"]) + "\n", ("next_line", 0, tk.END))
+        
+        self.txt_box.configure(state="disable")
+        self.txt_box.pack()
+
+    
+    # Filters Journal Entry content before showing a specific
+    # Going to need to call show_data within this function in the future, where filter runs before show
+    #TODO: Add mutiple date and month options
+    def filter_by_date(self, journal_data):
+        data = journal_data
+        input_filter = self.entry_filter.get()
+        
+        #if input is date {
+        #   Execute belows code
+        # } 
+        #Waiting on check date method 
+
+        self.frame3 = tk.Frame(self.master)
+        self.frame3.pack()
+
+        self.txt_box = tk.Text(self.frame3)
+
+        for key, value in journal_data.items():
+            if input_filter in key:
+                self.txt_box.insert(tk.END, key + "\n", ("key_date", 0, tk.END))
+                self.txt_box.tag_configure("key_date", foreground = "red", font = " TkFixedFont")
+                # Perhaps use Enumerate?
+                for element in value:
+                    #Change Name, Time, and Calories color/font/size
+                    self.txt_box.insert(tk.END, "Name: " + element["name"] + "\n", ("next_line", 0, tk.END))
+                    self.txt_box.insert(tk.END, "Time: " + element["time"] + "\n", ("next_line", 0, tk.END))
+                    self.txt_box.insert(tk.END, "Calories: " + str(element["calories"]) + "\n", ("next_line", 0, tk.END))
+            else:
+                print(key + "sad")
+
+        self.txt_box.configure(state="disable")
+        self.txt_box.pack()
+    
     
     def close_windows(self):
         self.master.destroy()
