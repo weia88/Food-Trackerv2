@@ -114,19 +114,24 @@ class StartPage:
 # Class: Window that allows displaying and minor manipulation of Journal Entry content
 class JournalWindow:
     def __init__(self, master):
+        journal_data = jm.read_json("food_journal")  # Example being the json file name
+        self.months = ("January", "February", "March", "April", "May", "June", "July","August", "September", "October", "November", "December")
+
         self.master = master
         self.master.title('Displaying Journal')
-        self.frame = tk.Frame(self.master, width=500, height=800)
+        self.frame = tk.Frame(self.master, width=500, height=300)
         self.frame.pack()
         self.frame.pack_propagate(0)
 
-        journal_data = jm.read_json("food_journal")  # Example being the json file name
-
-        self.btn_show = tk.Button(self.frame, text='Show All', width=25, command=lambda: self.show_data(journal_data))
+        self.frame3 = tk.Frame(self.master)
+        self.frame3.pack()
+        self.text_box = tk.Text(self.frame3, height = 25, width = 75)
+        
+        self.btn_show = tk.Button(self.frame, text='Show All', width=25, command=lambda: self.show_data(journal_data, self.text_box))
         self.btn_show.pack(side=tk.RIGHT)
 
         self.btn_filter = tk.Button(self.frame, text='Filter By', width=25,
-                                    command=lambda: self.filter_by_date(journal_data))
+                                    command=lambda: self.filter_by_date(journal_data, self.text_box))
         self.btn_filter.pack(side=tk.RIGHT)
 
         self.btn_close = tk.Button(self.frame, text='Close', width=25, command=self.close_windows)
@@ -135,52 +140,66 @@ class JournalWindow:
         self.filter_frame = tk.Frame(self.master)
         self.filter_frame.pack(side=tk.LEFT)
 
+        self.dropdown_title = tk.StringVar(self.filter_frame)
+        self.dropdown_title.set("Months")
+        self.popup_menu = tk.OptionMenu(self.filter_frame, self.dropdown_title, *self.months)
+        self.popup_menu.pack(side = tk.LEFT)
+    
         label_time = tk.Label(self.filter_frame, text="Date to Filter by", fg="red")
         label_time.pack(side=tk.TOP)
         self.entry_filter = tk.Entry(self.filter_frame)
         self.entry_filter.pack(side=tk.BOTTOM)
 
-    def show_data(self, journal_data):
-    # Displays entire Journal Entry content        
-        self.frame3 = tk.Frame(self.master)
-        self.frame3.pack()
-
-        self.txt_box = tk.Text(self.frame3)
+    def show_data(self, journal_data, txt_box):
+        if len(txt_box.get("1.0", "end-1c")) != 0:
+        #Prevents data from displaying more than once 
+           txt_box.configure(state="normal")
+           txt_box.delete("1.0", tk.END)
 
         for key, value in journal_data.items():
-            self.txt_box.insert(tk.END, key + "\n", ("key_date", 0, tk.END))
-            self.txt_box.tag_configure("key_date", foreground="red", font=" TkFixedFont")
+            txt_box.insert(tk.END, key + "\n", ("key_date", 0, tk.END))
+            txt_box.tag_configure("key_date", foreground="red", font=" TkFixedFont")
             # Perhaps use Enumerate?
             for element in value:
                 # Change Name, Time, and Calories color/font/size
-                self.txt_box.insert(tk.END, "Name: " + element["name"] + "\n", ("next_line", 0, tk.END))
-                self.txt_box.insert(tk.END, "Time: " + element["time"] + "\n", ("next_line", 0, tk.END))
-                self.txt_box.insert(tk.END, "Calories: " + str(element["calories"]) + "\n", ("next_line", 0, tk.END))
+                txt_box.insert(tk.END, "Name: " + element["name"] + "\n", ("next_line", 0, tk.END))
+                txt_box.insert(tk.END, "Time: " + element["time"] + "\n", ("next_line", 0, tk.END))
+                txt_box.insert(tk.END, "Calories: " + str(element["calories"]) + "\n", ("next_line", 0, tk.END))
 
-        self.txt_box.configure(state="disable")
-        self.txt_box.pack()
+        txt_box.configure(state="disable")
+        txt_box.pack()
 
-
-    def filter_by_date(self, journal_data):
-        # TODO: Add mutiple date and month options
-
+    def filter_by_date(self, journal_data, txt_box):
+        filtered_data = {}
         input_filter = self.entry_filter.get()
-        if not input_filter: # Checks empty string
+                           
+        if input_filter: # Checks if string contains something
             try: # Check if Date format
                 datetime.strptime(input_filter, '%m/%d/%Y')
             except ValueError:
                 messagebox.showerror("Invalid Date Input", "Invalid Date Input")
-        else: 
-            filtered_data = {}
             for key, value in journal_data.items():
                 if input_filter in key:
-                    filtered_data[key] = value
-            self.show_data(filtered_data)
+                    filtered_data[key] = value  
+            self.show_data(filtered_data, txt_box)
+        elif self.dropdown_title.get() != "Months": # Checks if a month is given
+            month_index = self.months.index(self.dropdown_title.get()) + 1
+            print(month_index)
+            for key, value in journal_data.items():
+                if month_index == int(key.split("/")[0]):
+                    filtered_data[key] = value  
+            self.show_data(filtered_data, txt_box)     
+        else: # Assumes empty
+            messagebox.showwarning("Missing Input", "Please give a filter criteria")       
 
     def close_windows(self):
         self.master.destroy()
 
-
+# WIP For use in Startpage and Filter Entries 
+class PlaceholderEntry():
+    #on its way
+    def __init__(self):
+        print("something")
 def main():
     root = tk.Tk()
     app = StartPage(root)
